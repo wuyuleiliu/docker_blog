@@ -14,5 +14,8 @@
 
 - 20180418 ----------------------- [Docker环境下Ghost博客的搭建][2]
 
+- 20180420 ----------------------- [Docker环境下Nginx的搭建][3]
+
 [1]:./Process/chapter-1.md
 [2]:./Process/chapter-2.md
+[3]:./Process/chapter-3.md
