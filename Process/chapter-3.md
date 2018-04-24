@@ -83,3 +83,44 @@ docker run -p 80:80 --name mynginx -v /root/nginx/nginx.conf:/etc/nginx/nginx.co
 ```
 
 查看下日志没有错误，访问正常即可
+
+### nginx问题
+
+nginx访问日志中出现其他网站的GET记录
+
+```sh
+xxx.xxx.xxx.xxx - - [24/Apr/2018:11:10:27 +0000] "GET http://www.baidu.com/cache/global/img/gs.gif" 301 0 "-" "-" "-"
+xxx.xxx.xxx.xxx - - [24/Apr/2018:11:10:32 +0000] "GET http://www.baidu.com/cache/global/img/gs.gif" 301 0 "-" "-" "-"
+xxx.xxx.xxx.xxx - - [24/Apr/2018:11:16:55 +0000] "http://www.baidu.com/cache/global/img/gs.gif" 400 174 "-" "-" "-"
+xxx.xxx.xxx.xxx - - [24/Apr/2018:11:17:23 +0000] "GET http://www.baidu.com/cache/global/img/gs.gif" 301 0 "-" "-" "-"
+xxx.xxx.xxx.xxx - - [24/Apr/2018:11:18:31 +0000] "http://www.baidu.com/" 400 174 "-" "-" "-"
+xxx.xxx.xxx.xxx - - [24/Apr/2018:11:18:42 +0000] "GET http://www.baidu.com/" 200 8856 "-" "-" "-"
+xxx.xxx.xxx.xxx - - [24/Apr/2018:11:19:35 +0000] "GET http://www.baidu.com/ HTTP/1.1" 200 8645 "-" "-" "-"
+xxx.xxx.xxx.xxx - - [24/Apr/2018:11:22:02 +0000] "GET http://www.baidu.com/ HTTP/1.1" 200 8856 "-" "-" "-"
+```
+
+比如上边跳转到百度首页，居然返回200，那是否成功了呢？自己的服务器是否被当做代理访问其他网站了呢？
+
+200状态仅仅说明Apach/Nginx正确发送了数据，并不在意这些数据从哪来的。
+
+> 事实上，RFC2616规范中说明了，Apache就是要接受这些请求的，这意味这即使proxying关闭了，Apache也要收纳这些个看起来像是代理的请求。
+> 但是Apache没有了代理，所以不会去看目标网站，只是把自己的内容返回过去，一般来说，就是这个默认的页面。
+
+
+这边用 telnet 来测试下
+
+```sh
+[root@gc-server ~]# telnet xxx.xxx.xxx.xxx  80
+Trying xxx.xxx.xxx.xxx...
+Connected to xxx.xxx.xxx.xxx.
+Escape character is '^]'.
+GET http://www.baidu.com/ HTTP/1.1
+Host: www.baidu.com
+```
+
+回车两次，查看是否是自己的网站页面，我试了下 还是自己主页，所以没问题
+
+
+xxx.xxx.xxx.xxx - - [24/Apr/2018:11:31:46 +0000] "CONNECT  http://www.baidu.com/ HTTP/1.1" 404 170 "-" "-" "-"
+
+CONNECT 方式直接报错 这里不多说 自己去试下 自己的应用是否存在问题，再遇到坑我再更新
