@@ -135,3 +135,158 @@ if ($host !~ ^(example.com|www.example.com)$) {
 	return 444;
 }
 ```
+
+### 增加ip访问限制
+
+将原来的容器缩掉，重新创建新容器，准备好对应的目录和文件
+
+>  配置文件   /root/nginx/nginxconfig/nginx.conf       
+>  文件目录   /root/nginx/nginxconfig/conf.d   
+>  日志路径   /root/nginx/log/
+
+nginx.conf 配置文件内容：
+
+
+```sh
+user  nginx;
+worker_processes  1;
+
+error_log  /var/log/nginx/error.log warn;
+pid        /var/run/nginx.pid;
+
+
+events {
+    worker_connections  1024;
+}
+
+
+http {
+    include       /etc/nginx/mime.types;
+   
+    #禁止访问ip
+    include /etc/nginx/conf.d/blockip.conf;
+    default_type  application/octet-stream;
+
+    log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                      '$status $body_bytes_sent "$http_referer" '
+                      '"$http_user_agent" "$http_x_forwarded_for"';
+
+    access_log  /var/log/nginx/access.log  main;
+
+    sendfile        on;
+    #tcp_nopush     on;
+
+    keepalive_timeout  65;
+
+    #gzip  on;
+
+    upstream myServer{
+		#内网ip 不开外网端口
+        server xxx.xxx.xxx.xxx:8081;
+        server xxx.xxx.xxx.xxx:8082;
+    }
+	
+	server {
+        listen       80;
+        server_name  xxx.xxx.xxx.xxx;
+	
+        if ($http_user_agent ~* (Wget|ab) ) { return 403; } 
+        
+        if ($http_user_agent ~* LWP::Simple|BBBike|wget) { return 403; }	
+        
+        if ($host !~ ^(xxx.xxx.xxx.xxx)$) {
+            return 444;
+        }
+	
+        location / {
+            
+            proxy_pass http://myServer/;
+			proxy_set_header Host $host;
+            proxy_set_header X-Real-Ip $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        }
+
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   html;
+        }
+
+    }
+}
+```
+
+conf.d 下创建 default.conf，blockip.conf
+
+default.conf 直接默认的nginx文件就好,这里也贴下吧
+
+```sh
+server {
+    listen       80;
+    server_name  localhost;
+
+    #charset koi8-r;
+    #access_log  /var/log/nginx/host.access.log  main;
+
+    location / {
+        root   /usr/share/nginx/html;
+        index  index.html index.htm;
+    }
+
+    #error_page  404              /404.html;
+
+    # redirect server error pages to the static page /50x.html
+    #
+    error_page   500 502 503 504  /50x.html;
+    location = /50x.html {
+        root   /usr/share/nginx/html;
+    }
+
+    # proxy the PHP scripts to Apache listening on 127.0.0.1:80
+    #
+    #location ~ \.php$ {
+    #    proxy_pass   http://127.0.0.1;
+    #}
+
+    # pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000
+    #
+    #location ~ \.php$ {
+    #    root           html;
+    #    fastcgi_pass   127.0.0.1:9000;
+    #    fastcgi_index  index.php;
+    #    fastcgi_param  SCRIPT_FILENAME  /scripts$fastcgi_script_name;
+    #    include        fastcgi_params;
+    #}
+
+    # deny access to .htaccess files, if Apache's document root
+    # concurs with nginx's one
+    #
+    #location ~ /\.ht {
+    #    deny  all;
+    #}
+}
+```
+
+blockip.conf 存放黑名单ip(xxx.xxx.xxx.xxx 代表 ip)
+
+```sh
+deny xxx.xxx.xxx.xxx;
+deny xxx.xxx.xxx.xxx;
+```
+
+查看ip访问量
+
+```sh
+awk '{print $1}' /root/nginx/log/access.log |sort |uniq -c|sort -n
+```
+
+启动容器
+
+```sh
+docker run 
+-p 80:80 
+--name mynginx 
+-v /root/nginx/nginxconfig/nginx.conf:/etc/nginx/nginx.conf 
+-v /root/nginx/nginxconfig/conf.d:/etc/nginx/conf.d 
+-v /root/nginx/log/:/var/log/nginx/ 
+-d docker.io/nginx
+```
