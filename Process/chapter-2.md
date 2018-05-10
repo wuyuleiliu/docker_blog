@@ -1,4 +1,4 @@
-# docker_ghost_blog
+# docker_blog
 
     
 ## Docker环境下Ghost博客的搭建

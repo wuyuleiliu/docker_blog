@@ -1,6 +1,6 @@
-# docker_ghost_blog
+# docker_blog
 
-使用docker环境搭建ghost博客
+使用docker环境搭建博客
 
 ## Summary
 
@@ -16,6 +16,9 @@
 
 - 20180420 ----------------------- [Docker环境下Nginx的搭建][3]
 
+- 20180510 ----------------------- [Docker环境下WordPress博客的搭建][4]
+
 [1]:./Process/chapter-1.md
 [2]:./Process/chapter-2.md
 [3]:./Process/chapter-3.md
+[4]:./Process/chapter-4.md

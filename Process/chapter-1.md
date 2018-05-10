@@ -1,4 +1,4 @@
-# docker_ghost_blog
+# docker_blog
 
     
 ## Mysql数据库的搭建
