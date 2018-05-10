@@ -1,6 +1,6 @@
 # docker_blog
 
-## Docker环境下Ghost博客的搭建
+## Docker环境下Nginx的搭建
 
 > docker pull nginx
 
