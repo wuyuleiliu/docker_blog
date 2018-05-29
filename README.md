@@ -20,8 +20,11 @@
 
 - 20180518 ----------------------- [Docker环境下WordPress博客注意事项][5]
 
+- 20180529 ----------------------- [Docker环境下更改镜像的时区设置][6]
+
 [1]:./Process/chapter-1.md
 [2]:./Process/chapter-2.md
 [3]:./Process/chapter-3.md
 [4]:./Process/chapter-4.md
 [5]:./Process/chapter-5.md
+[6]:./Process/chapter-6.md
